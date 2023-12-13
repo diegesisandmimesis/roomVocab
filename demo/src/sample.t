@@ -44,6 +44,7 @@ startRoom: Room 'Void'
 	"This is a featureless void. "
 	north = middleRoom
 ;
++pebble: Thing 'small round pebble' 'pebble' "A small, round pebble. ";
 +me: Person;
 
 middleRoom: Room 'Middle Room'
