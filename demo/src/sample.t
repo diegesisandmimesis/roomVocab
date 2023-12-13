@@ -40,7 +40,21 @@ versionInfo: GameID
 	}
 ;
 
-startRoom: Room 'Void' "This is a featureless void.";
+startRoom: Room 'Void'
+	"This is a featureless void. "
+	north = middleRoom
+;
 +me: Person;
+
+middleRoom: Room 'Middle Room'
+	"This is the middle room. "
+	north = northRoom
+	south = startRoom
+;
+
+northRoom: Room 'North Room'
+	"This is the north room. "
+	south = middleRoom
+;
 
 gameMain: GameMainDef initialPlayerChar = me;
