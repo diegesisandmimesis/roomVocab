@@ -2,6 +2,8 @@
 //
 // roomVocabRoom.t
 //
+//	Modifications to the base Room class.
+//
 #include <adv3.h>
 #include <en_us.h>
 
@@ -21,27 +23,46 @@ modify Room
 	vocabLikelihood = (isAdjacent(gActor, self) ? 0 : -30)
 
 	// Make sure we have an actor.
-	_canonicalizeActor(actor) { return(actor ? actor : gActor); }
+	_canonicalizeActor(actor) {
+		actor = (actor ? actor : gActor);
+		if((actor == nil) || !actor.ofKind(Actor))
+			return(nil);
+		return(actor);
+	}
 
-	// Check to see if the given object's location is adjacent to
+	// Check to see if the given actors's location is adjacent to
 	// the given room.
-	isAdjacent(obj, rm) {
+	isAdjacent(actor, rm) {
 		local src;
 
-		if(_canonicalizeActor(obj) == nil)
+		if(_canonicalizeActor(actor) == nil)
 			return(nil);
 
-		if(((src = obj.getOutermostRoom()) == nil) || !src.ofKind(Room))
+		if(((src = actor.getOutermostRoom()) == nil)
+			|| !src.ofKind(Room))
 			return(nil);
 
-		return(src.exitList(obj).indexOf(rm) != nil);
+		return(src.destinationList(actor).indexOf(rm) != nil);
 	}
 
 	// Get all of the exits available to the given actor from this room.
 	// Second arg is an optional callback.  See allDirectionsExitList() for
 	// details.
+	// As written this is just a wrapper for allDirectionsExitList(), but
+	// it's still a separate function to make it easier to write
+	// extensions that include non-directional exits.
 	exitList(actor?, cb?) {
 		return(allDirectionsExitList(actor, cb));
+	}
+
+	// Like exitList, but include just the destinations for each exit.
+	destinationList(actor?, cb?) {
+		local r;
+
+		r = new Vector();
+		exitList(actor, cb).forEach(function(o) { r.append(o.dest_); });
+
+		return(r);
 	}
 
 	// Returns a list of all the exits from this room that are apparent to
@@ -87,14 +108,28 @@ modify Room
 		return(r);
 	}
 
+	// Add all the rooms adjacent to this room to the scope list.
 	getExtraScopeItems(actor) {
 		local v;
 
 		v = new Vector();
 		exitList(actor).forEach(function(o) {
-			v.append(o.dest_);
+			if(v.indexOf(o.dest_) == nil)
+				v.append(o.dest_);
 		});
 
 		return(v.toList());
+	}
+
+	// Custom-ish failure message for rooms.
+	// This is used by action preconditions (objVisible and
+	// TouchObjCondition, for example) and here we just do something
+	// less confusing than the default "You cannot see that", which
+	// is awkward for adjacent rooms.
+	mustBeVisibleMsg() {
+		if(isAdjacent(gActor, self))
+			return(&roomUnseenAdjacent);
+		else
+			return(&mustBeVisibleMsg);
 	}
 ;

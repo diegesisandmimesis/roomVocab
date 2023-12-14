@@ -1,6 +1,8 @@
 #charset "us-ascii"
 //
-// roomVocab.t
+// roomVocabPreinit.t
+//
+//	Preinit object for setting up vocabulary on Room instances.
 //
 #include <adv3.h>
 #include <en_us.h>
